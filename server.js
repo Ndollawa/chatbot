@@ -73,18 +73,19 @@ placedOrders= [...placedOrders,{dateTime}]
      session.history =  [placedOrders];
 } else {
       session.history = [...session.history, placedOrders] } 
-      // Respond to the user 
-      const orderResult = Object.values(placedOrders).map((value,i)=>{
+      // Respond to the user
+      let orderResult;
+       Object.values(placedOrders).map((value,i)=>{
           // console.log(value)
-          if(value && i !== (Object.values(placedOrders).length-1)){
-      return (`<li>${value.label} - ${value.price}</li>`)}})
-      socket.emit('message', { type: 'text', message: `You have ordered<br/><ol>${orderResult}</ol><br/>${dateTime} ` });
+          if(value?.label !== undefined && i !== (Object.values(placedOrders).length-1)){
+      orderResult +=`<li>${value?.label} - ${value?.price}</li>`}})
+      socket.emit('message', { type: 'text', message: `You have ordered<br/><ol>${orderResult}</ol><br/>Date - ${dateTime} ` });
        // Send the user back the options 
        setTimeout(() => {
            socket.emit('message', { type: 'options', options: [ {value: '1', label: 'Place an order'}, {value: '99', label: 'Checkout order'}, {value: '98', label: 'See order history'}, {value: '97', label: 'See current order'}, {value: '0', label: 'Cancel order'} ] });
      
        }, 500);
-     // });
+   
 
      }
      switch(option.msg){
@@ -135,8 +136,6 @@ break;
  })
   
         msg +=`${history}</tbody></table>`; 
-      socket.emit('message', { type: 'text', message: `You have ordered<br/><ol>${orderResult}</ol><br/>${dateTime} ` });
-     
         socket.emit('message', { type: 'text', message: msg }); 
      
 } 
@@ -144,7 +143,7 @@ break;
          // Handle the request for "See current order"
  case '97':
              // Check if any orders have been placed 
-        if (!session.order) {
+        if (session.order === null || !session.order) {
              // No orders have been placed 
         socket.emit('message', { type: 'text', message: 'No current order' });
      } else { 
@@ -155,22 +154,19 @@ break;
                 if(order.includes(item.value)) return item
            })
            placedOrders= [...placedOrders,{dateTime}]
-                 const orderResult = Object.values(placedOrders).map((value,i)=>{
-                     // console.log(value)
-                     if(value && i !== (Object.values(placedOrders).length-1)){
-                 return (`<li>${value.label} - ${value.price}</li>`)}})
-                 socket.emit('message', { type: 'text', message: `Your current order<br/><ol>${orderResult}</ol><br/>${dateTime} ` });
-                  // Send the user back the options 
-                  setTimeout(() => {
-                   socket.emit('message', { type: 'options', options: [ {value: '1', label: 'Place an order'}, {value: '99', label: 'Checkout order'}, {value: '98', label: 'See order history'}, {value: '97', label: 'See current order'}, {value: '0', label: 'Cancel order'} ] });
-                   
-                  }, 500);
+           let orderResult;
+                   Object.values(placedOrders).map((value,i)=>{
+                     if(value?.label !== undefined && i !== (Object.values(placedOrders).length-1)){
+                orderResult +=`<li>${value?.label} - ${value?.price}</li>`}})
+                     console.log(orderResult)
+                 socket.emit('message', { type: 'text', message: `Your current order<br/><ol>${orderResult}</ol><br/>Date - ${dateTime} ` });
+              
     } 
     break;
          // Handle the request for "Cancel order"
          case '0':
              // Check if any orders have been placed 
-        if (!session.order) {
+        if (!session.order || session.order === null) {
              // No orders have been placed 
         socket.emit('message', { type: 'text', message: 'No order to cancel' }); } else {
             // Cancel the order 

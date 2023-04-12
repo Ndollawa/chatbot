@@ -24,7 +24,7 @@ $(document).on('keydown', function(e) {
 })
 })
 
-  socket = io('https://chabot-ne92.onrender.com:1000',{withCredentials: true});
+  socket = io('https://chabot-ne92.onrender.com:10000',{withCredentials: true});
   socket.emit('user-join',io);
   socket.on('message',(data)=>{
   let msg ='';
