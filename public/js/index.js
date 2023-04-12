@@ -2,21 +2,31 @@ var $messages = $('.messages-content'),
     d, h, m,
     i = 0;
 
+$(window).load(function() {
+  $messages.mCustomScrollbar();
+});
     
+$(document).ready(function(){
+  'use strict';
+
 // const socket = io('http://localhost:3000');
 
 
 
-$(window).load(function() {
-  $messages.mCustomScrollbar();
-  setTimeout(function() {
-  join();
-  }, 100);
+$('#message-form').submit(function(e) {
+  e.preventDefault();
+  insertMessage();
 });
+$(window).on('keydown', function(e) {
+  if (e.which == 13) {
+    insertMessage();
+    return false;
+  }
+})
+})
 
-function join(){
   socket = io('http://localhost:3000',{withCredentials: true});
-  socket.emit('user-join',('hhmmm'));
+  socket.emit('user-join',io);
   socket.on('message',(data)=>{
   let msg ='';
   switch (data.type) {
@@ -48,13 +58,12 @@ data.items?.forEach(item => {
       msg = "Opps! sorry and  error occured";
       break;
   }
-  console.log(data.type)
- 
+ setTimeout(() => {
+  
  serverMessage(msg);
+ }, 500);
 });
 
-
-}
 function updateScrollbar() {
   $messages.mCustomScrollbar("update").mCustomScrollbar('scrollTo', 'bottom', {
     scrollInertia: 10,
@@ -72,6 +81,9 @@ function setDate(){
 
 function insertMessage() {
   msg = $('.message-input').val();
+  const addToCart =$.trim($('#addToCart').val()) 
+  console.log(addToCart)
+ let type = '';
   if ($.trim(msg) == '') {
     return false;
   }
@@ -80,21 +92,17 @@ function insertMessage() {
   $('.message-input').val(null);
   updateScrollbar();
   setTimeout(function() {
-   socket.emit('option',(msg));
+    if(addToCart.length > 0){
+      socket.emit('option',({type:'addToCart',msg,cartItems:addToCart}));
+    }else{
+      socket.emit('option',({type:"options",msg}));
+
+    }
+
   }, 1000 + (Math.random() * 20) * 100);
 }
 
-$('#message-form').submit(function(e) {
-  e.preventDefault();
-  insertMessage();
-});
 
-$(window).on('keydown', function(e) {
-  if (e.which == 13) {
-    insertMessage();
-    return false;
-  }
-})
 
 
 function serverMessage(message) {
