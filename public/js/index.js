@@ -2,12 +2,11 @@ var $messages = $('.messages-content'),
     d, h, m,
     i = 0;
 
-$(window).load(function() {
-  $messages.mCustomScrollbar();
-});
+  
     
 $(document).ready(function(){
   'use strict';
+$messages.mCustomScrollbar();
 
 // const socket = io('http://localhost:3000');
 
@@ -17,7 +16,7 @@ $('#message-form').submit(function(e) {
   e.preventDefault();
   insertMessage();
 });
-$(window).on('keydown', function(e) {
+$(document).on('keydown', function(e) {
   if (e.which == 13) {
     insertMessage();
     return false;
