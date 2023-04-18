@@ -1,16 +1,18 @@
-var $messages = $('.messages-content'),
-    d, h, m,
-    i = 0;
 
-  
-    
+    var $messages = $('.messages-content'), d, h, m, i = 0;
+ 
 $(document).ready(function(){
+ 
+  
   'use strict';
 $messages.mCustomScrollbar();
 
 // const socket = io('http://localhost:3000');
+getRestaurantItems();
 
+// $(document).on('submit',"#message-form", function(){
 
+// })
 
 $('#message-form').submit(function(e) {
   e.preventDefault();
@@ -23,45 +25,6 @@ $(document).on('keydown', function(e) {
   }
 })
 })
-
-  socket = io('https://chabot-ne92.onrender.com:10000',{withCredentials: true});
-  socket.emit('user-join',io);
-  socket.on('message',(data)=>{
-  let msg ='';
-  switch (data.type) {
-    case "options":
-        msg +=`Please Choose and option..<br/>`
-        data.options?.forEach(option => {
-        msg += `<div><span>${option.value} :</span><span>${option.label}</span></div>`;
-        }); 
-      break;
-    case "list":
-       msg +=`Please Make your order <br/>
-   <table>
-   <tr align="center">Available Menu</tr>
-   <thead><tr><th>S/N</th><th>Item</th><th>Price</th></tr></thead>
-   <tbody>`
-data.items?.forEach(item => {
- msg += `<tr><td>${item.value}</td><td>${item.label}</td><td>${item.price}</td></tr>`;
-});
-   msg +=`</tbody></table>`; 
-      break;
-    case "greetings":
-      msg = data.message;
-      break;
-    case "text":
-      msg = data.message;
-      break;
-  
-    default:
-      msg = "Opps! sorry and  error occured";
-      break;
-  }
- setTimeout(() => {
-  
- serverMessage(msg);
- }, 500);
-});
 
 function updateScrollbar() {
   $messages.mCustomScrollbar("update").mCustomScrollbar('scrollTo', 'bottom', {
@@ -81,7 +44,6 @@ function setDate(){
 function insertMessage() {
   msg = $('.message-input').val();
   const addToCart =$.trim($('#addToCart').val()) 
-  console.log(addToCart)
  let type = '';
   if ($.trim(msg) == '') {
     return false;
@@ -90,18 +52,103 @@ function insertMessage() {
   setDate();
   $('.message-input').val(null);
   updateScrollbar();
-  setTimeout(function() {
+  // setTimeout(function() {
     if(addToCart.length > 0){
-      socket.emit('option',({type:'addToCart',msg,cartItems:addToCart}));
+     option = {type:'addToCart',msg,cartItems:addToCart}
     }else{
-      socket.emit('option',({type:"options",msg}));
-
+      option = {type:'options',msg}
     }
 
-  }, 1000 + (Math.random() * 20) * 100);
+  // }, 1000 + (Math.random() * 20) * 100);
+
+  $.ajax({
+    url:'/chat',
+    method:'POST',
+    data:{option},
+    success:function(data){
+      console.log(data) 
+      const {message,restaurantItems,options} = data;
+      if(message){
+ 
+        setTimeout(() => {
+           msg = message+'<br/><br/>';
+          serverMessage(msg);
+          }, 500);
+      }
+      
+      if(restaurantItems){
+        setTimeout(() => {
+        msg =`Please Make your order <br/>
+        <table><br/>
+        <tr align="center">Available Menu</tr>
+        <thead><tr><th>S/N</th><th>Item</th><th>Price</th></tr></thead>
+        <tbody>`;
+      Object.values(restaurantItems)?.forEach(item => {
+      msg += `<tr><td>${item.value}</td><td>${item.label}</td><td>${item.price}</td></tr>`;
+      });
+        msg +=`</tbody></table></br>`; 
+      
+          serverMessage(msg);
+          },3000); 
+      }
+       if(options){
+        
+                setTimeout(() => {
+                    msg =`Please Choose and option..<br/>`;
+                  Object.values(options)?.forEach(option => {
+                  msg += `<div><span>${option.value} :</span><span>${option.label}</span></div>`;
+                  }); 
+                    serverMessage(msg);
+                    }, 4000);
+      }
+    }
+  })
+}
+function getRestaurantItems(){
+ 
+  $.ajax({
+    url:'/restaurant',
+    method:'GET',
+    success:function(data){
+      const {message, options, restaurantItems} = data;
+console.log(data)
+let msg;
+if(message){
+ 
+  setTimeout(() => {
+     msg = message+'<br/><br/>';
+    serverMessage(msg);
+    }, 500);
 }
 
+if(restaurantItems){
+  setTimeout(() => {
+  msg =`Please Make your order <br/>
+  <table><br/>
+  <tr align="center">Available Menu</tr>
+  <thead><tr><th>S/N</th><th>Item</th><th>Price</th></tr></thead>
+  <tbody>`;
+Object.values(restaurantItems)?.forEach(item => {
+msg += `<tr><td>${item.value}</td><td>${item.label}</td><td>${item.price}</td></tr>`;
+});
+  msg +=`</tbody></table></br>`; 
 
+    serverMessage(msg);
+    },3000); 
+}
+ if(options){
+  
+          setTimeout(() => {
+              msg =`Please Choose and option..<br/>`;
+            Object.values(options)?.forEach(option => {
+            msg += `<div><span>${option.value} :</span><span>${option.label}</span></div>`;
+            }); 
+              serverMessage(msg);
+              }, 4000);
+}
+}
+  })
+}
 
 
 function serverMessage(message) {
